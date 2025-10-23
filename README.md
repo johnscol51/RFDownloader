@@ -10,7 +10,7 @@ the software has been created to be very lightweight and follow the look and fee
 
 documentation
 
-there  is a video showing operation of v2.1 of the app  https://youtu.be/MCCEfsiakbQ
+there  is a video showing operation of v2.1 of the app   https://youtu.be/fbyE8wkoz-s 
 
 platforms
 
