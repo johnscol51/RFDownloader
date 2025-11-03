@@ -18,6 +18,7 @@ from PIL import ImageTk, Image
 from datetime import date
 import datetime
 from serial.tools.list_ports import comports
+from serial.tools import list_ports 
 import csv
 global Plot
 Plot = False
@@ -57,6 +58,7 @@ igcfiles = "igcfiles"  # where the files end up
 linefeed = '\n'  #  \n for linux  \r\n for windows
 global timeToStartShort
 global menu1_selection_dir
+STM_VID = 0x0483  # common STMicroelectronics vendor id
 
 
 #########################################################
@@ -138,26 +140,82 @@ def update_menus(event):
     update_menu2_tasks(event)                                                                         
     update_menu3_pilots(event)
 
-#########################################################
-### get com port
-def get_ComPort():
-    portNo = "xx"
-    for port in comports():
-        if "STM32" in str(port):  # test for linux com port
-            portNo = str(port)[:12]
-        if "STMicroelectronics" in str(port):   # test for windows com port
-            portNo = str(port)[:5]
-    if portNo == "xx":
-        portNo = "No port"
-        messageToWrite = "no port found" 
-        resultsM = event_write(messageToWrite) 
-    else:
-        messageToWrite = portNo + " found" 
-        resultsM = event_write(messageToWrite) 
-    value_port.set(portNo)
-    print (portNo + " found")
 
+
+def matches_stm(p):
+    """Return True if the port object likely belongs to an STM32 device."""
+    # fields from list_ports (some may be None)
+    desc = (p.description or "").lower()
+    manuf = (getattr(p, "manufacturer", "") or "").lower()
+    hwid = (getattr(p, "hwid", "") or "").lower()
+    device = (getattr(p, "device", "") or "").lower()
+
+    # textual matches
+    if "stm32" in desc or "stm32" in manuf or "stm32" in hwid:
+        return True
+    if "stmicroelectronics" in desc or "stmicroelectronics" in manuf:
+        return True
+
+    # VID/PID check (if available)
+    vid = getattr(p, "vid", None)
+    if vid is not None and vid == STM_VID:
+        return True
+
+    # macOS / dev name heuristics
+    if sys.platform == "darwin":
+        # typical mac device name patterns for USB serial devices
+        if device.startswith("/dev/tty.usbmodem") or device.startswith("/dev/tty.usbserial") or device.startswith("/dev/cu.usbmodem") or device.startswith("/dev/cu.usbserial"):
+            return True
+
+    # Windows / Linux additional heuristics
+    if sys.platform.startswith("win"):
+        if "stmicroelectronics" in desc or "stlink" in desc:
+            return True
+    else:
+        # on many Linux systems STM32 bootloader shows up as ttyACM or ttyUSB
+        if device.startswith("/dev/ttyACM") or device.startswith("/dev/ttyUSB"):
+            if "stm32" in desc or "stlink" in desc or vid == STM_VID:
+                return True
+
+    return False
+
+def get_ComPort():
+    portNo = "No port"
+    try:
+        ports = list_ports.comports()
+    except Exception as e:
+        messageToWrite = f"error listing ports: {e}"
+        event_write(messageToWrite)
+        value_port.set(portNo)
+        print(messageToWrite)
+        return portNo
+
+    # Prefer exact matches; if none found, optionally fall back to first tty matching patterns
+    for p in ports:
+        if matches_stm(p):
+            # prefer p.device which is portable (COMx on Windows, /dev/... on *nix)
+            portNo = getattr(p, "device", str(p))
+            break
+
+    # fallback: try looser mac/linux patterns if nothing matched yet
+    if portNo == "No port" and sys.platform == "darwin":
+        for p in ports:
+            d = getattr(p, "device", "")
+            if d.startswith("/dev/tty.usb") or d.startswith("/dev/cu.usb"):
+                portNo = d
+                break
+
+    if portNo == "No port":
+        messageToWrite = "no port found"
+        event_write(messageToWrite)
+    else:
+        messageToWrite = f"{portNo} found"
+        event_write(messageToWrite)
+
+    value_port.set(portNo)
+    print(messageToWrite)
     return portNo
+
 
 #########################################################
 ###  do all the actuall downlaod stuff
