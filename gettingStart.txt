@@ -1,0 +1,14 @@
+welcome
+
+to get this app running you simply need to copy the below items from the distribution to a new directory on your computer
+
+rfdownloader.exe      - this is the main program exe
+championships.csv     - this is a sample csv file used to define the rounds in your championship
+/test		      - this is a directory which is test or dummy round of your championship
+
+
+championships.csv  this file is simply a list of the rounds in the championship and is used to locate directory where the sofware expects to find the championship files and where it will save the output igc files. ideally rounds will be names in all lower case and with no spaces (example prestioncapes).  its been pre-populated as best we can, but you can add others if needed.
+
+on first run of the app, when you select your round from the list the dir will be created for you, and an example pilots.csv will be created in the round dir.  you and should update this to match your pilot list.
+
+its suggested that you use the pilot number in the example, as these are the number on the actual loggers, but you can change the names as needed.
