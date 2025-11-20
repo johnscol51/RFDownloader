@@ -25,17 +25,6 @@ Plot = False
 
 sys.stdout = open('debug.log' ,'w')
 
-############################################################
-# get the comand line args
-
-if len(sys.argv) > 1:
-   param1 = sys.argv[1] 
-   print (param1)
-   if param1 == "P":
-       Plot = True
-       import plot_igc
-       print (Plot)
-
 
 print ("app startup :" , datetime.datetime.now())
 
@@ -43,12 +32,10 @@ print ("app startup :" , datetime.datetime.now())
 global messageStr
 messageStr = "" 
 champ_list = []
-task_list = []
 pilot_list = []
 time_list = ["07:00","07:30","08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","20:00","20:30","21:00","21:30","22:00","22:30","23:00"]
 
 champFile = "championships.csv"
-taskFile = "tasks.csv"
 pilotFile = "pilots.csv"
 portNo = "com8"
 global pilotNamesDict
@@ -84,27 +71,47 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
+
+
+################################################################################
+#  Create  round subdirectory in the current working directory if it doesn't exist.
+#  populate it with a sample pilots.csv if its new
+##########
+def create_subdir_and_copy(subdir_name, source_file="test/pilots.csv"):
+    global menu1_selection_dir
+    subdir_name = value_champName.get().replace(" ","_").lower()
+    #menu1_selection_dir = value_champName.get().replace(" ","_").lower()
+    from pathlib import Path
+    import shutil
+
+    full_path = Path(os.getcwd()) / subdir_name
+    src = Path(source_file).resolve()  # normalize to absolute path
+
+    if full_path.exists():
+        return f"{subdir_name} exists"
+    else:
+        # Create the directory
+        full_path.mkdir(parents=True)
+
+        # Copy the file if it exists
+        if src.exists():
+            shutil.copy(src, full_path)
+            return f"dir {subdir_name} created, example {src.name} added to it"
+        else:
+            return f"Subdirectory created at: {full_path}, but source file not found: {src}"
+
+
+
 ###############################################################################
 # Function to populate menu2 based on tasks.csv in the champ subdirectory
+#  this has been simplified to just have a list of numbers as we dont really 
+#  about them really
+###############
 def update_menu2_tasks(event):
     global menu1_selection_dir
-    menu1_selection_dir = value_champName.get().replace(" ","_").lower()
-    try:
-        # Construct the file path: subdirectory/menu1_selection_dir/tasks.csv
-        file_path = os.path.join(menu1_selection_dir, "tasks.csv")
-
-        # Read the contents of the CSV file (first column only)
-        with open(file_path, "r") as csv_file:
-            reader = csv.reader(csv_file)
-            menu2_options = [row[0] for row in reader if row]  # Read first column
-
-        # Update menu2 dropdown
-        menu2_var.set("1")  # Reset menu2 value
-        menu2_dropdown["values"] = menu2_options
-    except FileNotFoundError:
-        menu2_var.set("")
-        menu2_dropdown["values"] = []  # Clear menu2 options
-        print(f"File {file_path} not found.")
+    menu2_options = ["1","2","3","4","5","6","7","8","9","10"]  # Read first column
+    menu2_dropdown["values"] = menu2_options
+    return
 
 #######################################################################
 # Function to populate menu3 based on pilots.csv in the subdirectory
@@ -137,6 +144,8 @@ def update_menu3_pilots(event):
 
 # Bind the event once to the combined function for menu updates
 def update_menus(event):                                                                        
+    messageToWrite = create_subdir_and_copy(event)
+    event_write(messageToWrite)
     update_menu2_tasks(event)                                                                         
     update_menu3_pilots(event)
 
@@ -179,6 +188,9 @@ def matches_stm(p):
 
     return False
 
+#####################################################################################
+# get com port using al the guessing for the various plateforms
+###########################################################
 def get_ComPort():
     portNo = "No port"
     try:
@@ -187,7 +199,6 @@ def get_ComPort():
         messageToWrite = f"error listing ports: {e}"
         event_write(messageToWrite)
         value_port.set(portNo)
-        print(messageToWrite)
         return portNo
 
     # Prefer exact matches; if none found, optionally fall back to first tty matching patterns
@@ -520,7 +531,7 @@ menu1_dropdown.grid(row=0,column=1,sticky="s")
 
 menu1_dropdown.bind("<<ComboboxSelected>>", update_menus)
 
-#question_menu1 = tk.OptionMenu(root, value_taskNo, *task_list) 
+#menu2_dropdown = tk.OptionMenu(root, value_taskNo, *task_list) 
 menu2_dropdown = ttk.Combobox(root, textvariable=menu2_var)
 menu2_dropdown.grid(row=2,column=1,sticky="s")
 
@@ -563,7 +574,7 @@ logo_image = ImageTk.PhotoImage(Image.open(resource_path("GPS-logo.png")).resize
 image_label = tk.Label(root, image = logo_image)
 image_label.grid(row=1,column=3,sticky="nw")
 
-l6 = tk.Label(root,  text='RFdownloader v2.2')  
+l6 = tk.Label(root,  text='RFdownloader v2.3')  
 l6.grid(row=8,column=3,sticky="se")
 
 
