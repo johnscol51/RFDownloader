@@ -8,6 +8,7 @@
 # updated to fix/include the padding for lon mins in the parser.
 # v1.4  updated to use 2019 gps epoch to fix the missing leap seconds, and auto guess the com port (on windows)
 #######################################################################################################
+#######################################################################################################
 
 # Import the tk.module 
 import tkinter as tk
@@ -35,8 +36,19 @@ champ_list = []
 pilot_list = []
 time_list = ["07:00","07:30","08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","20:00","20:30","21:00","21:30","22:00","22:30","23:00"]
 
-champFile = "championships.csv"
-pilotFile = "pilots.csv"
+#############################################################################
+# function to allow access to the local files on macOS
+def app_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)  # folder containing the exe/app
+    else:
+        return os.path.dirname(os.path.abspath(__file__))
+
+print("App dir:", app_dir())
+
+champFile = os.path.join(app_dir(), "championships.csv")
+#champFile = "championships.csv"
+pilotFile = os.path.join(app_dir(),"test/pilots.csv")
 portNo = "com8"
 global pilotNamesDict
 pilotNamesDict = {}
@@ -56,7 +68,8 @@ try:
     OpenChampfile = open(champFile, "r", encoding='ascii', errors='replace')
 except FileNotFoundError:
     print (champFile, " needs to be in the same dir as the exe")
-    quit()
+    sys.exit()
+    #quit()
 
 for line2 in OpenChampfile.read().splitlines():
     ChampNameIn = line2.split(",")[0]
@@ -64,7 +77,7 @@ for line2 in OpenChampfile.read().splitlines():
 
 #############################################################################
 # function to allow the logo to be included in a onefile bin
-def resource_path(relative_path):
+def resource_path1(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -72,12 +85,23 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+import os, sys
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and PyInstaller bundle."""
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
+
+
 
 ################################################################################
 #  Create  round subdirectory in the current working directory if it doesn't exist.
 #  populate it with a sample pilots.csv if its new
 ##########
-def create_subdir_and_copy(subdir_name, source_file="test/pilots.csv"):
+def create_subdir_and_copy(subdir_name, source_file=pilotFile):
     global menu1_selection_dir
     subdir_name = value_champName.get().replace(" ","_").lower()
     #menu1_selection_dir = value_champName.get().replace(" ","_").lower()
@@ -229,13 +253,12 @@ def get_ComPort():
 
 
 #########################################################
-###  do all the actuall downlaod stuff
+###  do all the actual download stuff
 
 
 def renkforce_clear():
     from skytraq.venus6 import Venus6
     port = get_ComPort()
-    #port = "com8"
     serial_speed = None # 9600
 
     #gps = Venus6('/dev/ttyACM0', serial_speed, debug=False)
@@ -417,7 +440,7 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
     pilotIGC.write("HSFTYFRTYPE:Renkforce,GT730" + linefeed)
     pilotIGC.write("HSCIDCOMPETITIONID:" + pilotNo + linefeed)
     pilotIGC.write("LCMASTSKTASKNUMBER:" + taskNo + linefeed)
-    pilotIGC.write("LCMASTSNDATATRANSFERSOFTWARENAME:RFdownloader 2.1" + linefeed)
+    pilotIGC.write("LCMASTSNDATATRANSFERSOFTWARENAME:RFdownloader 2.4" + linefeed)
     timeLatch = 0
     for bigLine in bigIGC.read().splitlines():
         if bigLine[0:10] == DateToStartShort:
@@ -574,7 +597,7 @@ logo_image = ImageTk.PhotoImage(Image.open(resource_path("GPS-logo.png")).resize
 image_label = tk.Label(root, image = logo_image)
 image_label.grid(row=1,column=3,sticky="nw")
 
-l6 = tk.Label(root,  text='RFdownloader v2.3')  
+l6 = tk.Label(root,  text='RFdownloader v2.4')  
 l6.grid(row=8,column=3,sticky="se")
 
 

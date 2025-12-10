@@ -3,6 +3,10 @@
 #
 # this script is called from the rfloader, it created a plot window showing where the saved track went etc
 #
+# Force matplotlib to use an TK backend, as there are compat issues on macOS
+import matplotlib
+
+matplotlib.use("TkAgg")
 
 import matplotlib.pyplot as plt
 import math
