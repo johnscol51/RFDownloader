@@ -21,6 +21,7 @@ import datetime
 from serial.tools.list_ports import comports
 from serial.tools import list_ports 
 import csv
+from pathlib import Path
 global Plot
 Plot = False
 
@@ -47,6 +48,7 @@ def app_dir():
 print("App dir:", app_dir())
 
 champFile = os.path.join(app_dir(), "championships.csv")
+raw_fil = os.path.join(app_dir(), "renkforce_raw1.bin")
 #champFile = "championships.csv"
 pilotFile = os.path.join(app_dir(),"test/pilots.csv")
 portNo = "com8"
@@ -77,15 +79,6 @@ for line2 in OpenChampfile.read().splitlines():
 
 #############################################################################
 # function to allow the logo to be included in a onefile bin
-def resource_path1(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
-import os, sys
 
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and PyInstaller bundle."""
@@ -105,10 +98,10 @@ def create_subdir_and_copy(subdir_name, source_file=pilotFile):
     global menu1_selection_dir
     subdir_name = value_champName.get().replace(" ","_").lower()
     #menu1_selection_dir = value_champName.get().replace(" ","_").lower()
-    from pathlib import Path
     import shutil
 
-    full_path = Path(os.getcwd()) / subdir_name
+    #full_path = Path(os.getcwd()) / subdir_name
+    full_path = Path(app_dir()) / subdir_name
     src = Path(source_file).resolve()  # normalize to absolute path
 
     if full_path.exists():
@@ -379,7 +372,7 @@ def start_download():
          return None
 
     ######## call to get raw bin data from gps 
-    sectors = renkforce_download(port,"renkforce_raw1.bin")
+    sectors = renkforce_download(port,raw_fil)
 
     if sectors == 0 :   #### log something
          messageToWrite = "FAILED to download " 
@@ -388,7 +381,7 @@ def start_download():
         messageToWrite = pilotNo + " raw data downloaded " + str(sectors) + " sectors" 
         resultsM = event_write(messageToWrite) 
         ######## call to turn the raw binary data into igc data 
-        returnCode = createBigIGC("renkforce_raw1.bin",taskNo,pilotNo,actualChampDir)
+        returnCode = createBigIGC(raw_fil,taskNo,pilotNo,actualChampDir)
         
     return None
 
@@ -398,7 +391,7 @@ def start_download():
 def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
     print ("converting to big igc")
     #PilotDir = str(champDIR) + "\\" + str(pilotNo)
-    PilotDir = str(champDIR) + os.sep + str(pilotNo)
+    PilotDir = app_dir() + os.sep + str(champDIR) + os.sep + str(pilotNo)
     PilotName = pilotNamesDict.get(pilotNo) 
     if os.path.isdir(PilotDir) == False:
         os.mkdir(PilotDir)
@@ -411,10 +404,10 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
          messageToWrite = "FAILED to convert " 
          resultsM = event_write(messageToWrite) 
     else:
-        messageToWrite = pilotNo + " Big IGC created, last stamp:" + lastDateStamp + " " + str(counter) + " rows" 
+        messageToWrite = pilotNo + "Backup IGC created, last stamp:" + lastDateStamp + " " + str(counter) + " rows" 
         resultsM = event_write(messageToWrite) 
 
-    igcfileDir = champDIR + os.sep + igcfiles
+    igcfileDir = app_dir() + os.sep + champDIR + os.sep + igcfiles
     if os.path.isdir(igcfileDir) == False:
         os.mkdir(igcfileDir)
 
@@ -426,6 +419,7 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
     
     bigIGC = open(bigIGCfile, "r", encoding='ascii', errors='replace')
     igcFileName = igcfileDir + os.sep + pilotNo + "T" + taskNo + "V1R1" + "_" + PilotName + ".igc"
+    igcFileNameShort = str(Path(*Path(igcFileName).parts[-3:]))
     pilotIGC = open(igcFileName, "w")
     counter = 0
     pilotIGC.write("AXXXXXXAM-renkforce GT370" + linefeed)
@@ -440,7 +434,7 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
     pilotIGC.write("HSFTYFRTYPE:Renkforce,GT730" + linefeed)
     pilotIGC.write("HSCIDCOMPETITIONID:" + pilotNo + linefeed)
     pilotIGC.write("LCMASTSKTASKNUMBER:" + taskNo + linefeed)
-    pilotIGC.write("LCMASTSNDATATRANSFERSOFTWARENAME:RFdownloader 2.4" + linefeed)
+    pilotIGC.write("LCMASTSNDATATRANSFERSOFTWARENAME:RFdownloader 2.5" + linefeed)
     timeLatch = 0
     for bigLine in bigIGC.read().splitlines():
         if bigLine[0:10] == DateToStartShort:
@@ -456,7 +450,7 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
          messageToWrite = "FAILED to find date and time requested " 
          resultsM = event_write(messageToWrite) 
     else:
-        messageToWrite = igcFileName + " IGC created "  + str(counter) + " rows" 
+        messageToWrite = igcFileNameShort + " IGC created "  + str(counter) + " rows" 
         resultsM = event_write(messageToWrite) 
     pilotIGC.close()
     ######################################################
@@ -597,7 +591,7 @@ logo_image = ImageTk.PhotoImage(Image.open(resource_path("GPS-logo.png")).resize
 image_label = tk.Label(root, image = logo_image)
 image_label.grid(row=1,column=3,sticky="nw")
 
-l6 = tk.Label(root,  text='RFdownloader v2.4')  
+l6 = tk.Label(root,  text='RFdownloader v2.5')  
 l6.grid(row=8,column=3,sticky="se")
 
 
