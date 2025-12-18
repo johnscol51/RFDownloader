@@ -115,7 +115,9 @@ def create_subdir_and_copy(subdir_name, source_file=pilotFile):
             shutil.copy(src, full_path)
             return f"dir {subdir_name} created, example {src.name} added to it"
         else:
-            return f"Subdirectory created at: {full_path}, but source file not found: {src}"
+            full_pathShort = str(Path(*Path(full_path).parts[-2:]))
+            srcShort = str(Path(*Path(src).parts[-2:]))
+            return f"Subdirectory created at: {full_pathShort}, but source file not found: {srcShort}"
 
 
 
@@ -155,7 +157,7 @@ def update_menu3_pilots(event):
     except FileNotFoundError:
         menu3_var.set("")
         menu3_dropdown["values"] = []  # Clear menu3 options
-        messageToWrite =  f"File {file_path} not found."
+        messageToWrite =  f"ERROR:File {file_path} not found."
         resultsM = event_write(messageToWrite) 
         print(f"File {file_path} not found.")
 
@@ -404,7 +406,7 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
          messageToWrite = "FAILED to convert " 
          resultsM = event_write(messageToWrite) 
     else:
-        messageToWrite = pilotNo + "Backup IGC created, last stamp:" + lastDateStamp + " " + str(counter) + " rows" 
+        messageToWrite = pilotNo + " Backup IGC created, last stamp:" + lastDateStamp + " " + str(counter) + " rows" 
         resultsM = event_write(messageToWrite) 
 
     igcfileDir = app_dir() + os.sep + champDIR + os.sep + igcfiles
