@@ -10,11 +10,11 @@ the software has been created to be very lightweight and follow the look and fee
 
 documentation
 
-there  is a video showing operation of v2.1 of the app   https://youtu.be/fbyE8wkoz-s 
+there  is a video showing operation of v2.1 of the app  https://youtu.be/MCCEfsiakbQ
 
 platforms
 
-the software is python,  specifically py3.8, it current will run native on linux or windows having been tested on windows11 and linux Mint 22.1. 
+the software is python,  specifically py3.8, it current will run native on linux or windows having been tested on windows11 and linux Mint 22.1. """now upgraded to support MacOS""""" from version 2.5
 
 pre-req Py imports outside the standard pack
 
@@ -30,4 +30,4 @@ championships.csv - required to define a list of competitions or events.  this i
 
 pilots.csv - required to create the list of pilots and their comp numbers. this is required to follow the existing naming standard for files
 
-tasks.csv -  simple list of task number, used to populate the drop down for the task. this again is required to follow the existing naming standard.
+
