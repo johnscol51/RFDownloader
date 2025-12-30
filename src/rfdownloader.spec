@@ -24,7 +24,9 @@ a = Analysis(
         ('GPS-logo.png', '.'),          # your logo
         ('README-macOS.txt', '.'),      # bundle the README
     ],
-    hiddenimports=['tkinter'],   # add GUI libs if needed
+    hiddenimports=['tkinter',
+ "PIL", "PIL._imaging", "PIL._imagingtk", "PIL.Image", "PIL.ImageFilter", "PIL.ImageOps", "PIL.ImageEnhance", "PIL.ImageStat", "PIL.ImageChops", "PIL.ImageFile","PIL._tkinter_finder",
+    ],   # add GUI libs if needed
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
