@@ -10,6 +10,7 @@
 #######################################################################################################
 #######################################################################################################
 
+import optparse,getopt
 # Import the tk.module 
 import tkinter as tk
 from tkinter import ttk
@@ -26,6 +27,15 @@ global Plot
 Plot = False
 
 sys.stdout = open('debug.log' ,'w')
+#############################################################################
+# check for hidden args
+#############################################################################
+extend = False
+(Opts, Args) = getopt.gnu_getopt(sys.argv[1:], "")
+if Args:
+    if Args[0] == "e":
+       extend = True
+       print ("extend ",extend)
 
 
 print ("app startup :" , datetime.datetime.now())
@@ -400,7 +410,7 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
 
     
     bigIGCfile = PilotDir + os.sep + pilotNo + "T" + taskNo + "big" + "_" + PilotName + ".igc"   
-    lastDateStamp,counter = renkforce_parse.bin2igc_converter(raw_bin,bigIGCfile)
+    lastDateStamp,counter = renkforce_parse.bin2igc_converter(raw_bin,bigIGCfile,extend)
 
     if counter == 0 :   #### log something
          messageToWrite = "FAILED to convert " 
@@ -436,7 +446,9 @@ def createBigIGC(raw_bin,taskNo,pilotNo,champDIR):
     pilotIGC.write("HSFTYFRTYPE:Renkforce,GT730" + linefeed)
     pilotIGC.write("HSCIDCOMPETITIONID:" + pilotNo + linefeed)
     pilotIGC.write("LCMASTSKTASKNUMBER:" + taskNo + linefeed)
-    pilotIGC.write("LCMASTSNDATATRANSFERSOFTWARENAME:RFdownloader 2.5" + linefeed)
+    pilotIGC.write("LCMASTSNDATATRANSFERSOFTWARENAME:RFdownloader 2.6" + linefeed)
+    if extend == True:
+        pilotIGC.write("I023639FXA4042GSP" + linefeed)   # for extend info (ground speed)
     timeLatch = 0
     for bigLine in bigIGC.read().splitlines():
         if bigLine[0:10] == DateToStartShort:
@@ -593,7 +605,7 @@ logo_image = ImageTk.PhotoImage(Image.open(resource_path("GPS-logo.png")).resize
 image_label = tk.Label(root, image = logo_image)
 image_label.grid(row=1,column=3,sticky="nw")
 
-l6 = tk.Label(root,  text='RFdownloader v2.5')  
+l6 = tk.Label(root,  text='RFdownloader v2.6')  
 l6.grid(row=8,column=3,sticky="se")
 
 

@@ -7,13 +7,15 @@
 
 ##################################################################################
 
-def bin2igc_converter(rawfil,stagingfile):
+def bin2igc_converter(rawfil,stagingfile,extend):
+    #  rawfil is bin,  stagingfile is bigIGCfile,  extend is Y/N for extra info (GSP) 
     #import binascii
     from skytraq.venus6 import Venus6
     from datetime import timedelta, datetime
     #import sys
     rowcounter = 0
     outfil = open(stagingfile, "w")
+    print (extend)
 
     with open(rawfil, 'rb') as raw:
         data = raw.read()
@@ -26,11 +28,15 @@ def bin2igc_converter(rawfil,stagingfile):
              time = dt[11:19].replace(":","")
              date = dt[0:10]
              altitude = "A00000" + str(int(round(alt))).zfill(5)
-             #print (date,time,lat_igc, lon_igc,altitude)
-             Brecord = date + ",B"  + time + lat_igc + lon_igc + altitude + "\n"
+             extension = "0001" + str(speed).zfill(3)   # add FXA and GSP to B records
+             #print (date,time,lat_igc, lon_igc,altitude,extension)
+             if extend == True:
+                 Brecord = date + ",B"  + time + lat_igc + lon_igc + altitude + extension + "\n"
+             else:
+                 Brecord = date + ",B"  + time + lat_igc + lon_igc + altitude + "\n" 
              rowcounter = rowcounter + 1
              outfil.write(Brecord)
-             #print (Brecord)
+             print (Brecord)
     outfil.close()
     return dt,rowcounter 
 
